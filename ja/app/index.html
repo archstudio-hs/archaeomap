@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="遺跡の出典別座標を比較し、研究地図と図版を編集するArchaeoMapです。">
+  <title>ArchaeoMap · 考古学研究地図</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23007aff'/%3E%3Cpath d='m6 9 7-3 6 3 7-3v17l-7 3-6-3-7 3zm7-3v17m6-14v17' fill='none' stroke='white' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 5.5 6-2.4 6 2.4 6-2.4v15.4l-6 2.4-6-2.4-6 2.4zM9 3.4v15M15 5.8v15"/></symbol>
+    <symbol id="i-plate" viewBox="0 0 24 24"><rect x="2.7" y="4.5" width="18.6" height="15" rx="2.1"/><path d="M6.7 15.7h5.7"/><rect x="14" y="7.5" width="4.4" height="4.4" rx=".6"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="m9 5-5 5 5 5M4.6 10h9.2c4 0 6.1 2.4 6.1 5.1 0 1.7-.7 3.3-1.9 4.3"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 5 5 5-5 5m4.4-5h-9.2c-4 0-6.1 2.4-6.1 5.1 0 1.7.7 3.3 1.9 4.3"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7V5.8C3 4.8 3.8 4 4.8 4h4.4l2.2 2.5h7.8c1 0 1.8.8 1.8 1.8v9.9c0 1-.8 1.8-1.8 1.8H4.8c-1 0-1.8-.8-1.8-1.8V7Z"/><path d="M3.6 9h16.8"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 3.5v11m-4-4 4 4 4-4M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.4 15.4 5 5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-tools" viewBox="0 0 24 24"><path d="M3 7h8m5 0h5M3 17h3m5 0h10"/><circle cx="13.5" cy="7" r="2.5"/><circle cx="8.5" cy="17" r="2.5"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M13.5 4.5v15M16.5 8h2M16.5 11h2"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M19 9.5c0 5-7 11-7 11s-7-6-7-11a7 7 0 1 1 14 0Z"/><circle cx="12" cy="9.4" r="2.5"/></symbol>
+    <symbol id="i-crop" viewBox="0 0 24 24"><path d="M5 2.8v14.4A1.8 1.8 0 0 0 6.8 19h14.4M3 5h14.2A1.8 1.8 0 0 1 19 6.8V21"/></symbol>
+    <symbol id="i-inset" viewBox="0 0 24 24"><rect x="2.8" y="4" width="18.4" height="16" rx="2"/><rect x="12.6" y="6.8" width="5.8" height="4.8" rx=".8"/></symbol>
+    <symbol id="i-mono" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-satellite" viewBox="0 0 24 24"><path d="m10.2 8 5.8 5.8-3.6 3.6-5.8-5.8zM4.1 3.6l4.6 1.6-3.5 3.5-1.6-4.6zm15.8 16.8-4.6-1.6 3.5-3.5 1.6 4.6zM8 8l1.2 1.2m5.6 5.6L16 16M14 5a5 5 0 0 1 5 5m-5-8a8 8 0 0 1 8 8"/></symbol>
+    <symbol id="i-terrain" viewBox="0 0 24 24"><path d="m2 19 7-13 5.2 9 3.2-5L22 19z"/><path d="m6.8 10 2.1 1.1 1.7-1.8"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5.5 12.4 4.3 4.3 8.7-9.1"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.6 6.6 10.8 10.8m0-10.8L6.6 17.4"/></symbol>
+    <symbol id="i-move" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-6.4 10-6.4S22 12 22 12s-3.6 6.4-10 6.4S2 12 2 12Z"/><circle cx="12" cy="12" r="2.7"/></symbol>
+  </defs>
+</svg>
+<header class="topbar">
+  <div class="identity">
+    <span class="brand-mark" aria-hidden="true"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-map"></use></svg></span>
+    <b class="brand-title">ArchaeoMap</b>
+    <button id="resetAll" type="button" class="reset-button" title="すべての遺跡・設定・図版を消去して初期状態に戻す"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-undo"></use></svg>初期化</button>
+  </div>
+  <nav class="workspace-tabs segmented" aria-label="作業スペース">
+    <button id="mapTab" aria-pressed="true"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-map"></use></svg>地図作業</button>
+    <button id="plateTab" aria-pressed="false"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plate"></use></svg>図版編集</button>
+  </nav>
+  <div class="history-actions">
+    <button id="undo" class="icon-button" title="元に戻す (Ctrl+Z)" aria-label="元に戻す" disabled><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-undo"></use></svg></button>
+    <button id="redo" class="icon-button" title="やり直し (Ctrl+Shift+Z)" aria-label="やり直し" disabled><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-redo"></use></svg></button>
+  </div>
+  <div class="file-actions">
+    <button id="saveProject" title="プロジェクトファイルを保存"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-save"></use></svg>保存</button>
+    <details id="projectMenu" class="project-menu">
+      <summary class="menu-button" aria-controls="projectMenuBody"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-folder"></use></svg>プロジェクト</summary>
+      <div id="projectMenuBody" class="menu" role="group" aria-label="プロジェクト操作">
+        <label class="project-field" for="projectName">プロジェクト名</label>
+        <input id="projectName" type="text" maxlength="180" value="新規研究地図">
+        <div class="menu-rule"></div>
+        <button id="openProject" class="menu-item"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-folder"></use></svg>プロジェクトを開く</button>
+        <button id="newProject" class="menu-item"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plus"></use></svg>新規地図</button>
+      </div>
+    </details>
+    <input id="projectFile" type="file" accept=".json,.amap" hidden>
+  </div>
+</header>
+<main class="workspace" id="workspace" data-mode="map" data-side="left" data-preview="false">
+<aside id="left" class="panel" aria-label="作業ツール"><section id="groupSection"><div class="section-head"><h1>遺跡グループ</h1><button id="addGroup" class="link" title="グループ追加" aria-label="グループ追加"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>追加</button></div><div id="setupBox" class="setup-box"><label for="groupCount">いくつのグループで始めますか？</label><div class="setup-row"><input id="groupCount" type="number" value="1" min="1" max="500"><button id="configure" class="accent">グループ名設定</button></div></div><div id="configured"><div id="groups" class="list-surface"></div></div></section>    <section id="lookup">
+      <div class="section-head"><h2>遺跡検索</h2><span class="target" id="destination"></span></div>
+      <form id="searchForm" class="search" role="search" aria-label="遺跡名検索">
+        <div class="search-field"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-search"></use></svg><input id="query" type="search" placeholder="遺跡名または現地表記" aria-label="遺跡名" maxlength="100" required></div>
+        <button type="submit" class="primary">検索</button>
+      </form>
+      <p class="hint">国内外の遺跡名を日本語・英語・中国語・韓国語で検索できます。</p>
+      <div id="searchProgress" class="pending-track" aria-hidden="true" hidden></div>
+      <p id="searchStatus" role="status" aria-live="polite"></p>
+      <div id="results"></div>
+    </section>
+<section id="symbolSection" hidden><button type="button" id="symbolToggle" class="style-launch" aria-expanded="true" aria-controls="symbolPanel" tabindex="-1"><span class="style-preview" id="symbolPreview" aria-hidden="true"></span><span class="style-copy"><b>記号・番号スタイル</b><small id="symbolSummary"></small></span><svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"></use></svg></button>
+<div id="symbolPanel" class="style-panel">
+<label>グループ名<input id="groupName" maxlength="120"></label>
+<div class="field-label">記号の形状</div><div id="shapePicker" class="shape-picker" role="radiogroup" aria-label="記号の形状"></div>
+<div class="pair"><label>サイズ (px)<input id="groupSize" type="number" min="8" max="80"></label><label>記号の色<input id="groupColor" type="color"></label></div>
+<div class="pair"><label>縁取り色<input id="groupStroke" type="color"></label><label>縁取り幅<input id="groupStrokeWidth" type="number" min="0" max="8" step=".5"></label></div>
+<label class="check"><input id="groupShadow" type="checkbox">記号の影</label>
+<label class="range" id="groupShadowBox"><span>影のぼかし <output id="groupShadowOut"></output></span><input id="groupShadowBlur" type="range" min="0" max="10" step=".5"></label>
+<div class="panel-rule"></div>
+<label class="check"><input id="groupNumbers" type="checkbox">記号内に番号を表示</label>
+<div id="numberOptions" class="sub-options"><label>番号フォント<input id="groupNumberFont" type="text" maxlength="110" placeholder="遺跡名と同じ" data-font-picker></label><div class="pair"><label>サイズ (px)<input id="groupNumberSize" type="number" min="5" max="80" step=".5"></label><label>番号の色<input id="groupNumberColor" type="color"></label></div></div>
+<label class="check"><input id="groupPrefix" type="checkbox">地図の遺跡名の前に番号を付ける</label>
+<div class="panel-rule"></div>
+<label class="switch-row" hidden><input id="groupLabelOwn" type="checkbox" role="switch"><span><b>このグループの遺跡名を個別設定</b><small>オフにすると右側の「文字」の共通設定に従います。</small></span></label>
+<div id="labelOwnOptions" class="sub-options" hidden style="display:none"><label>フォント<input id="groupLabelFont" type="text" maxlength="110" data-font-picker></label><div class="pair"><label>サイズ (px)<input id="groupLabelSize" type="number" min="6" max="80" step=".5"></label><label>色<input id="groupLabelColor" type="color"></label></div><label class="check"><input id="groupLabelOutline" type="checkbox">遺跡名の縁取り</label><div id="groupOutlineOptions" class="pair"><label>縁取り色<input id="groupOutlineColor" type="color"></label><label>縁取り幅<input id="groupOutlineWidth" type="number" min=".5" max="8" step=".5"></label></div></div>
+<div class="row wrap icon-actions"><button id="customIcon" type="button">アイコン読込</button><button id="removeIcon" type="button" class="link">標準に戻す</button></div><input id="iconFile" type="file" accept="image/*" hidden>
+</div></section>
+<section id="plateTools"><h2>図版範囲</h2><button id="cropMain" class="full accent"><svg class="icon" aria-hidden="true"><use href="#i-crop"></use></svg>本図範囲を選択</button><button id="moveMap" class="full" hidden><svg class="icon" aria-hidden="true"><use href="#i-move"></use></svg>地図を移動</button><small id="mainState" class="main-state"></small><div class="row plate-links"><button id="redrawMain" class="link" hidden>地図で選び直す</button><button id="seeMain" class="link">位置を表示</button></div></section><section id="insetTools"><h2>ミニマップ</h2><label class="check"><input id="insetOn" type="checkbox">ミニマップを入れる</label><div id="insetPanel"><button id="cropInset" class="full"><svg class="icon" aria-hidden="true"><use href="#i-inset"></use></svg>広域範囲を選択</button><small id="insetState"></small><div id="insetOptions" class="pair"><label>配置<select id="miniCorner"><option value="topRight">右上</option><option value="topLeft">左上</option><option value="bottomRight">右下</option><option value="bottomLeft">左下</option><option value="custom">自由配置</option></select></label><label>幅 (%)<input id="miniSize" type="number" min="10" max="65"></label></div><div id="miniExtras"><div class="field-label">本図範囲の表示色</div><div class="swatches" id="miniSwatches" role="group" aria-label="本図範囲の表示色"><button type="button" data-swatch="#e0503a" style="--c:#e0503a" aria-label="朱赤"></button><button type="button" data-swatch="#1f6fd6" style="--c:#1f6fd6" aria-label="青"></button><button type="button" data-swatch="#16161a" style="--c:#16161a" aria-label="黒"></button><button type="button" data-swatch="#ffffff" style="--c:#ffffff" aria-label="白"></button><button type="button" data-swatch="#f2c230" style="--c:#f2c230" aria-label="黄"></button><label class="swatch-custom" title="その他の色"><input id="miniFrameColor" type="color" aria-label="その他の色を選択"></label></div><label class="check"><input id="miniScale" type="checkbox">ミニマップにも縮尺を入れる</label><label class="range" id="miniScaleSizeBox"><span>ミニマップ縮尺サイズ <output id="miniScaleSizeOut"></output></span><input id="miniScaleSize" type="range" min="40" max="250" step="5"></label></div></div></section><section id="scaleTools"><h2>縮尺・方位</h2><label class="check"><input id="scale" type="checkbox">縮尺バーを入れる</label><label>縮尺の形状<select id="scaleStyle"><option value="single">シングルボックス</option><option value="double">ダブルボックス</option><option value="ticks">目盛り線</option></select></label><label class="range" id="scaleSizeBox"><span>縮尺サイズ <output id="scaleSizeOut"></output></span><input id="scaleSize" type="range" min="40" max="250" step="5"></label><label class="check"><input id="north" type="checkbox">方位記号を入れる</label><div id="northPicker" class="north-picker" role="radiogroup" aria-label="方位記号の形状"></div><label class="range" id="northSizeBox"><span>方位記号サイズ <output id="northSizeOut"></output></span><input id="northSize" type="range" min="40" max="250" step="5"></label><div id="elevKeyTools"><label class="check"><input id="elevKey" type="checkbox">標高凡例を入れる</label><label class="check" id="elevBgBox"><input id="elevBg" type="checkbox">地図上の背景ボックス</label><label class="range" id="elevSizeBox"><span>標高凡例サイズ <output id="elevSizeOut"></output></span><input id="elevSize" type="range" min="40" max="250" step="5"></label></div><div class="row justify"><span></span><button id="markReset" type="button" class="link">自動位置に戻す</button></div></section><section id="legendSection" hidden>
+      <h2>凡例</h2>
+      <label class="check"><input id="legend" type="checkbox">凡例を入れる</label>
+      <div class="inspector-card box-card" id="legendCard" data-card="legend">
+        <label class="check"><input id="legendShowTitle" type="checkbox">凡例タイトルを表示</label>
+        <div id="legendTitleOptions" class="sub-options"><label>タイトル<input id="legendTitle" type="text" maxlength="120"></label><label>タイトルフォント<input id="legendTitleFont" type="text" maxlength="110" data-font-picker></label>
+        <div class="pair"><label>文字サイズ<input id="legendTitleSize" type="number" min="6" max="60" step=".5"></label><label>文字色<input id="legendTitleInk" type="color"></label></div>
+        <div class="field-label">タイトル揃え</div><div class="segmented seg-full" id="legendAlign" role="group" aria-label="凡例タイトル揃え"><button type="button" data-value="left">左</button><button type="button" data-value="center">中央</button><button type="button" data-value="right">右</button></div><label class="check"><input id="legendTitleShadow" type="checkbox">タイトルの影</label><label class="range" id="legendTitleShadowBox"><span>影のぼかし <output id="legendTitleShadowBlurOut"></output></span><input id="legendTitleShadowBlur" type="range" min="0" max="10" step=".5"></label></div>
+        <div class="panel-rule"></div>
+        <div class="field-label strong">凡例項目</div>
+        <label>フォント<input id="legendFont" type="text" maxlength="110" data-font-picker></label>
+        <div class="pair"><label>文字サイズ<input id="legendSize" type="number" min="6" max="48" step=".5"></label><label>文字色<input id="legendInk" type="color"></label></div>
+        <div class="field-label">項目揃え</div><div class="segmented seg-full" id="legendItemAlign" role="group" aria-label="凡例項目揃え"><button type="button" data-value="left">左</button><button type="button" data-value="center">中央</button><button type="button" data-value="right">右</button></div>
+        <div class="field-label">並び順</div>
+        <div class="segmented seg-full" id="legendLayout" role="group" aria-label="凡例の並び順"><button type="button" data-value="column">縦並び</button><button type="button" data-value="row">横並び</button></div>
+        <label class="check"><input id="legendShadow" type="checkbox">項目の影（記号にも適用）</label>
+        <label class="range" id="legendShadowBox"><span>影のぼかし <output id="legendShadowBlurOut"></output></span><input id="legendShadowBlur" type="range" min="0" max="10" step=".5"></label>
+        <div class="panel-rule"></div>
+        <label class="check"><input id="legendBgOn" type="checkbox">背景ボックス</label>
+        <div id="legendBgOptions"><div class="pair"><label>背景色<input id="legendBg" type="color"></label><label class="check pair-check"><input id="legendBorder" type="checkbox">枠線</label></div>
+        <label class="range"><span>不透明度 <output id="legendBgOpacityOut"></output></span><input id="legendBgOpacity" type="range" min="0" max="100" step="1"></label>
+        <label class="range"><span>余白 <output id="legendPadOut"></output></span><input id="legendPad" type="range" min="0" max="40" step=".5"></label></div>
+        <div class="row justify legend-foot"><span></span><button type="button" id="legendReset" class="link">自動位置</button></div>
+      </div>
+    </section><section id="captionTools"><h2>キャプション</h2><label class="check"><input id="capEnabled" type="checkbox">キャプションを入れる</label><div id="capOptions" class="inspector-card box-card" data-card="caption"><label>キャプション内容<textarea id="capText" rows="3" maxlength="20000"></textarea></label><button class="link" id="capAuto">登録順で再入力</button>
+<label>フォント<input id="capFont" type="text" maxlength="110" data-font-picker></label>
+<div class="pair"><label>文字サイズ<input id="capSize" type="number" min="6" max="60" step=".5"></label><label>文字色<input id="capInk" type="color"></label></div>
+<div class="field-label">揃え</div><div class="segmented seg-full" id="capAlign" role="group" aria-label="キャプション揃え"><button type="button" data-value="left">左</button><button type="button" data-value="center">中央</button><button type="button" data-value="right">右</button><button type="button" data-value="justify" title="両端揃え">両端</button></div>
+<label class="check"><input id="capShadow" type="checkbox">文字の影</label>
+<label class="range" id="capShadowBox"><span>影のぼかし <output id="capShadowBlurOut"></output></span><input id="capShadowBlur" type="range" min="0" max="10" step=".5"></label>
+<div class="panel-rule"></div>
+<label class="check"><input id="capBgOn" type="checkbox">背景ボックス</label>
+<div id="capBgOptions"><div class="pair"><label>背景色<input id="capBg" type="color"></label><label class="check pair-check"><input id="capBorder" type="checkbox">枠線</label></div>
+<label class="range"><span>不透明度 <output id="capBgOpacityOut"></output></span><input id="capBgOpacity" type="range" min="0" max="100" step="1"></label>
+<label class="range"><span>余白 <output id="capPadOut"></output></span><input id="capPad" type="range" min="0" max="40" step=".5"></label></div>
+<div class="row justify legend-foot"><span></span><button type="button" id="capReset" class="link">自動位置</button></div></div></section></aside>  <div id="center" class="centerpanel">
+    <div class="mapbar" role="group" aria-label="地図ツールバー">
+      <div class="view-title"><svg class="icon" aria-hidden="true"><use id="viewIcon" href="#i-map"></use></svg><strong id="viewTitle">研究地図</strong><small id="editHint" hidden></small></div>
+      <div class="mapbar-actions">
+        <div id="plateZoomBox" class="zoom-field" role="group" aria-label="図版プレビュー倍率" hidden>
+          <button type="button" id="zoomOut" class="zoom-step" aria-label="縮小" title="縮小 (Alt+スクロール)">−</button>
+          <select id="plateZoom" aria-label="図版プレビュー倍率"><option value="fit">全体表示</option><option value="50">50%</option><option value="75">75%</option><option value="100">100%</option><option value="150">150%</option><option value="200">200%</option><option value="300">300%</option></select>
+          <button type="button" id="zoomIn" class="zoom-step" aria-label="拡大" title="拡大 (Alt+スクロール)">+</button>
+        </div>
+        <button id="preview" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-eye"></use></svg>プレビュー</button>
+        <div id="editBar" role="toolbar" aria-label="本図範囲の編集" hidden>
+          <div class="segmented" id="editTools"><button type="button" data-tool="range">範囲調整</button><button type="button" data-tool="move">地図移動</button></div>
+          <button type="button" id="editFill">用紙全体に広げる</button>
+          <label class="edit-zoom" title="本図の地図ズームレベル">ズーム<input id="editZoom" type="number" min="1" max="19" step="0.1" aria-label="本図の地図ズームレベル"></label><span class="edit-sep"></span>
+          <button type="button" id="editUndo" class="icon-button" aria-label="範囲を元に戻す" title="元に戻す"><svg class="icon" aria-hidden="true"><use href="#i-undo"></use></svg></button>
+          <button type="button" id="editRedo" class="icon-button" aria-label="範囲をやり直す" title="やり直し"><svg class="icon" aria-hidden="true"><use href="#i-redo"></use></svg></button>
+          <small id="editStatus" role="status"></small>
+          <button type="button" id="editCancel">キャンセル</button>
+          <button type="button" id="editDone" class="primary">完了</button>
+        </div>
+        <button id="fitSites" class="quiet">全遺跡を表示</button><span class="view-zoom" id="zoomReadout" aria-label="地図ズームレベル"></span>
+      </div>
+    </div>
+    <div class="workbench">
+      <div id="mapFrame">
+        <div id="map" aria-label="探索地図"></div>
+        <div id="captureSurface" hidden><div id="selectionRect" hidden><output id="cropSize" aria-label="選択範囲サイズ"></output></div></div>
+        <div id="mapHint" role="status" hidden><span></span><button id="cancelPick">キャンセル</button></div>
+        <div id="platePreview" aria-label="図版プレビュー" hidden></div>
+      </div>
+    </div>
+  </div>
+  <aside id="right" class="panel" aria-label="遺跡属性と図版出力">
+    <section id="baseSection"><h2>背景地図</h2><div id="bases" class="baselist" role="group" aria-label="背景地図"></div><div class="layer-checks"><label class="check"><input id="boundaries" type="checkbox">行政区域境界</label><label class="check"><input id="coast" type="checkbox">海岸線</label><label class="check"><input id="rivers" type="checkbox">河川</label><label class="check" id="roadsBox"><input id="roads" type="checkbox">道路</label><label class="check"><input id="places" type="checkbox">国・行政地名</label></div><small id="baseNotice" role="status"></small></section><section id="elevSection"><h2>標高 <span class="unit">m</span></h2><div id="terrainLegend" hidden><div class="elevation-key"><strong>標高</strong><span>m</span></div><div id="bandRamp" class="band-ramp"></div>
+<div class="elev-controls"><div class="field-label">標高間隔 (m)</div><div class="segmented seg-full unit-seg" id="elevUnits" role="group" aria-label="等高線と標高段彩の間隔"></div><div class="field-label">色</div><div class="segmented seg-full" id="elevPalette" role="group" aria-label="等高線地図の配色"><button type="button" data-value="vivid">くっきり</button><button type="button" data-value="soft">淡色</button><button type="button" data-value="gray">白黒</button></div><div class="row wrap elev-checks"><label class="check"><input id="elevShade" type="checkbox">陰影起伏</label><label class="check"><input id="elevLines" type="checkbox">等高線</label></div></div><small id="contourInfo"></small></div></section>
+    <section id="siteSection">
+      <div class="section-head"><h2>登録遺跡 <span id="siteCount" class="count"></span></h2><button id="manual" class="link"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plus"></use></svg>直接登録</button></div>
+      <div id="sites" class="list-surface"></div>
+    </section>
+    <section id="inspector" hidden></section><section id="plateStyle"><h2>文字 <span class="count">全グループ共通</span></h2><label class="switch-row own-row" id="textOwnRow" hidden><input id="textOwn" type="checkbox" role="switch"><span><b><span id="textOwnName"></span> の遺跡名を個別に設定</b><small>オンにすると、このグループの遺跡名だけ下の設定を個別に使います。</small></span></label><div class="inspector-card text-card">
+<label class="check"><input id="showLabels" type="checkbox">地図に遺跡名を表示</label>
+<label class="check"><input id="labelLines" type="checkbox">記号と遺跡名の引き出し線</label>
+<div id="leaderOptions" class="pair"><label>引き出し線の色<input id="lineColor" type="color"></label><label>太さ (px)<input id="lineWidth" type="number" min=".25" step=".25" max="8"></label></div>
+<div class="panel-rule"></div>
+<label>フォント<input id="font" type="text" maxlength="110" data-font-picker></label>
+<div class="pair"><label>遺跡名サイズ (px)<input id="labelSize" type="number" min="6" max="80"></label><label>遺跡名の色<input id="labelColor" type="color"></label></div>
+<label class="check"><input id="labelOutline" type="checkbox">遺跡名の縁取り</label>
+<div id="outlineOptions" class="pair"><label>縁取り色<input id="outlineColor" type="color"></label><label>縁取り幅<input id="outlineWidth" type="number" min=".5" max="8" step=".5"></label></div>
+<label class="check"><input id="labelShadow" type="checkbox">遺跡名の影</label>
+<label class="range" id="labelShadowBox"><span>影のぼかし <output id="labelShadowOut"></output></span><input id="labelShadowBlur" type="range" min="0" max="10" step=".5"></label>
+</div></section><section id="photoTools"><div class="photo-head"><h2>遺物写真</h2></div><label>写真を紐づける遺跡<select id="photoOwner"></select></label><button id="addPhoto" class="full accent"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>遺物写真を追加</button><input id="photoFile" type="file" accept="image/*" multiple hidden><div id="photoItems" class="file-list"></div><div id="photoTextCard" class="inspector-card"><div class="field-label strong">写真説明の文字 <span class="count">全写真共通</span></div><label>フォント<input id="ptFont" type="text" maxlength="110" data-font-picker></label><div class="pair"><label>文字サイズ<input id="ptSize" type="number" min="5" max="40" step=".5"></label><label>文字色<input id="ptColor" type="color"></label></div><div class="field-label">文字の位置</div><div class="segmented seg-full pos-grid" id="ptAlign" role="group" aria-label="写真説明の位置"><button type="button" data-value="left-top">左上</button><button type="button" data-value="center-top">中央上</button><button type="button" data-value="right-top">右上</button><button type="button" data-value="left-bottom">左下</button><button type="button" data-value="center-bottom">中央下</button><button type="button" data-value="right-bottom">右下</button></div><label class="check"><input id="ptShadow" type="checkbox">文字の影（遺跡記号にも適用）</label><label class="range" id="ptShadowBox"><span>影のぼかし <output id="ptShadowBlurOut"></output></span><input id="ptShadowBlur" type="range" min="0" max="10" step=".5"></label><label class="check"><input id="ptSymbol" type="checkbox">説明の前に遺跡記号を付ける</label></div><div id="photoBgCard" class="inspector-card"><div class="field-label strong">写真欄の背景 <span class="count">全写真共通</span></div><label>写真欄の背景色<input id="ptBg" type="color"></label><label class="range"><span>写真欄の透明度 <span><output id="ptBgClearOut"></output>%</span></span><input id="ptBgClear" type="range" min="0" max="100" step="5"></label><label class="check"><input id="ptBorder" type="checkbox">写真の枠線を付ける</label><small class="hint">写真の後ろと説明文字の後ろを一緒に塗ります。透過写真は透明度を100%にすると下地なしで入ります。</small></div></section><section id="photoInspector" hidden></section>
+    <section id="cropGuide" hidden>
+      <h2>図版プレビュー</h2>
+      <div class="crop-guide"><svg class="icon" aria-hidden="true"><use href="#i-crop"></use></svg><p>地図上で本図の範囲を選択すると、ここに用紙と出力の設定が開きます。</p></div>
+    </section>
+    <section id="printSection" hidden>
+      <h2>図版出力</h2>
+      <div class="inspector-card">
+                <div class="pair">
+          <label>用紙<select id="paper"><option value="A4">A4</option><option value="A3">A3</option><option value="B5">B5 (JIS)</option><option value="custom">カスタム</option></select></label>
+          <label>向き<select id="orientation"><option value="landscape">横</option><option value="portrait">縦</option></select></label>
+        </div>
+        <div class="field-label">余白</div><div class="pair"><label>上・下 (mm)<input id="marginTB" type="number" min="0" max="60" step=".5"></label><label>左・右 (mm)<input id="marginLR" type="number" min="0" max="60" step=".5"></label></div>
+        <div class="pair" id="customPaper" hidden>
+          <label>幅 (mm)<input id="paperWidth" type="number" value="160" min="30" max="500"></label>
+          <label>高さ (mm)<input id="paperHeight" type="number" value="120" min="30" max="500"></label>
+        </div>
+        <div class="field-label">用紙の背景</div>
+        <div class="pair paper-row"><label>背景色<input id="paperColor" type="color"></label></div>
+        <label class="check"><input id="paperTransparent" type="checkbox">背景なし (SVG透過)</label>
+        <div class="pair">
+          <label>形式<select id="format"><option value="svg">SVG (ベクター)</option><option value="png">PNG</option><option value="jpg">JPG</option><option value="tif">TIFF</option><option value="pdf">PDF</option></select></label>
+          <label id="dpiLabel" hidden>解像度<select id="dpi"><option>300</option><option>600</option><option>900</option><option>1200</option></select></label>
+        </div>
+        <small role="status" id="syncStatus"></small><button id="retryFrame" hidden class="link">地図設定を再適用</button><button id="exportPlate" class="full primary"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-save"></use></svg>図版をダウンロード</button>
+        <progress id="exportProgress" max="100" value="0" aria-label="出力進捗" hidden></progress>
+        <small id="exportState" role="status"></small>
+        <label class="check corner-toggle"><input id="credit" type="checkbox">地図の出典表記を入れる</label>
+      </div>
+    </section>
+  </aside>
+</main>
+<footer class="statusbar" id="coordBar">
+  <span id="saveState" role="status"></span>
+  <a id="baseCredit" target="_blank" rel="noopener noreferrer" aria-label="背景地図の出典"></a>
+  <span id="pointerCoord" aria-label="ポインターの緯度・経度"></span>
+  <span class="crs" aria-label="座標系 WGS 84">WGS 84</span>
+</footer>
+<dialog id="modal" class="form-sheet" aria-labelledby="modalTitle">
+  <form id="modalForm">
+    <div class="sheet-head"><h2 id="modalTitle"></h2><button type="button" id="closeModal" class="icon-button" aria-label="閉じる"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-close"></use></svg></button></div>
+    <div id="modalBody"></div>
+    <div class="sheet-foot"><button class="primary" type="submit" id="modalSubmit">保存</button></div>
+  </form>
+</dialog>
+<div id="notice" role="status" aria-live="polite" hidden></div>
+<script defer src="vendor/leaflet.js"></script>
+<script defer src="vendor/fflate.js"></script>
+<script defer src="core.js"></script>
+<script defer src="model.js"></script>
+<script defer src="storage.js"></script>
+<script defer src="raster.js"></script>
+<script defer src="vendor/vector-reader.js"></script>
+<script defer src="terrain.js"></script>
+<script defer src="cartography.js"></script>
+<script defer src="plate.js"></script>
+<script defer src="shell.js"></script>
+<script defer src="fonts.js"></script>
+<script defer src="site-source.js"></script>
+<script defer src="app.js"></script>
+<script defer src="db-guide-addon.js"></script>
+</body>
+</html>

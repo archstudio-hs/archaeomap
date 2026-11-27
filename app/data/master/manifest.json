@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "num_buckets": 64,
+  "total_records": 99869,
+  "columns": [
+    "site_id",
+    "site_name",
+    "alt_name",
+    "country_code",
+    "period",
+    "site_type",
+    "lat",
+    "lon",
+    "coord_precision",
+    "source_org"
+  ]
+}
